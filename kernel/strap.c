@@ -42,7 +42,7 @@ void handle_mtimer_trap() {
   // hint: use write_csr to disable the SIP_SSIP bit in sip.
   //panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
   g_ticks++;
-  write_csr(sip,0);
+  write_csr(sip,read_csr(sip)&(~SIP_SSIP));
 }
 
 //
@@ -58,8 +58,8 @@ void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
       // dynamically increase application stack.
       // hint: first allocate a new physical page, and then, maps the new page to the
       // virtual address that causes the page fault.
-      panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
-
+      //panic( "You need to implement the operations that actually handle the page fault in lab2_3.\n" );
+      map_pages(current->pagetable,ROUNDDOWN(stval,PGSIZE),PGSIZE,(uint64)alloc_page(),prot_to_type(PROT_READ|PROT_WRITE,1));
       break;
     default:
       sprint("unknown page fault.\n");
