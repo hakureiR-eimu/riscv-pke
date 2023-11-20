@@ -39,7 +39,7 @@ void handle_mtimer_trap() {
   // hint: use write_csr to disable the SIP_SSIP bit in sip.
   //panic( "lab1_3: increase g_ticks by one, and clear SIP field in sip register.\n" );
   g_ticks++;
-  write_csr(sip,read_csr(sip)&(~SIP_SSIP));
+  write_csr(sip,0);
 }
 
 //
