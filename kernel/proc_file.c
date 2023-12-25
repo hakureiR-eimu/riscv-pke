@@ -15,6 +15,8 @@
 #include "util/functions.h"
 #include "util/string.h"
 
+// lab4_challenge1 add
+#include "vmm.h"
 //
 // initialize file system
 //
@@ -80,17 +82,50 @@ struct file *get_opened_file(int fd) {
 // return: -1 on failure; non-zero file-descriptor on success.
 //
 int do_open(char *pathname, int flags) {
+  // do parse on path
+  char paresd_path[256];
+
+  if (*(pathname) == '.' && *(pathname+1) == '.') 
+  {
+    pathname += 2;
+    if (current->pfiles->cwd->parent != NULL)
+    {
+      strcpy(paresd_path, current->pfiles->cwd->parent->name);
+      if (!strcmp(paresd_path, "/"))
+        *paresd_path = 0;
+      strcat(paresd_path, pathname);
+    }
+    else
+      strcpy(paresd_path, "/");
+  }
+  else if (*(pathname) == '.' && *(pathname+1) != '.')
+  {
+    pathname++;
+    strcpy(paresd_path, current->pfiles->cwd->name);
+    if (!strcmp(paresd_path, "/"))
+      *paresd_path = 0;
+    strcat(paresd_path, pathname);
+  }
+  else
+  {
+    strcpy(paresd_path, pathname);
+  }
   struct file *opened_file = NULL;
-  if ((opened_file = vfs_open(pathname, flags)) == NULL) return -1;
+  // sprint("do_open: %s\n", paresd_path);
+  if ((opened_file = vfs_open(paresd_path, flags)) == NULL)
+    return -1;
 
   int fd = 0;
-  if (current->pfiles->nfiles >= MAX_FILES) {
+  if (current->pfiles->nfiles >= MAX_FILES)
+  {
     panic("do_open: no file entry for current process!\n");
   }
   struct file *pfile;
-  for (fd = 0; fd < MAX_FILES; ++fd) {
+  for (fd = 0; fd < MAX_FILES; ++fd)
+  {
     pfile = &(current->pfiles->opened_files[fd]);
-    if (pfile->status == FD_NONE) break;
+    if (pfile->status == FD_NONE)
+      break;
   }
 
   // initialize this file structure
@@ -220,4 +255,56 @@ int do_link(char *oldpath, char *newpath) {
 //
 int do_unlink(char *path) {
   return vfs_unlink(path);
+}
+
+//
+// read present working directory (pwd)
+//
+int do_rcwd(char *path)
+{
+  if(current->pfiles->cwd == NULL) 
+    return -1;
+  strcpy((char *)user_va_to_pa((pagetable_t)current->pagetable, path), current->pfiles->cwd->name);
+  return 0;
+}
+
+//
+// change current working directory (cd)
+//
+int do_ccwd(char *path)
+{
+
+  if (!current->pfiles->cwd)
+    return -1;
+  char *path_pa = (char *)user_va_to_pa((pagetable_t)current->pagetable, path);
+  char *ch = path_pa;
+  if (*(ch+1)&&*(ch+1)=='.'&&*(ch)=='.')
+  {
+    if (!current->pfiles->cwd->parent)
+    {
+      strcpy(current->pfiles->cwd->name, "/");
+    }
+    else{
+      strcpy(current->pfiles->cwd->name, current->pfiles->cwd->parent->name); 
+      struct dentry *p = current->pfiles->cwd->parent;
+      current->pfiles->cwd->parent->parent = current->pfiles->cwd;
+      free_page(p);
+      ch += 2;
+      if (*ch == '/')
+        ch++;
+      strcat(current->pfiles->cwd->name, ch); 
+    }
+  }
+  else if (*(ch+1)&&*(ch+1)!='.'&&*(ch)=='.')
+  {
+    ch++;
+    if (!strcmp(current->pfiles->cwd->name, "/"))
+      *current->pfiles->cwd->name = 0;
+    strcat(current->pfiles->cwd->name, ch);
+  }
+  else
+  {
+    strcpy(current->pfiles->cwd->name, ch);
+  }
+  return 0;
 }

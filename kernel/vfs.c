@@ -560,6 +560,21 @@ struct dentry *lookup_final_dentry(const char *path, struct dentry **parent,
 }
 
 //
+// change the current working directory to "path"
+//
+int vfs_rcwd(char *path ){
+
+  return 0;
+};
+
+//
+// get the full path string of a dentry
+//
+int vfs_ccwd(char *path ){
+  return 0;
+};
+
+//
 // get the base name of a path
 //
 void get_base_name(const char *path, char *base_name) {
