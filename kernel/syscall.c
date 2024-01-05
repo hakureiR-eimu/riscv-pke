@@ -42,8 +42,11 @@ ssize_t sys_user_exit( uint64 code ) {
 ssize_t sys_backtrace( uint64 depth ) {
 
     int i, off;
-
-    uint64 fun_sp = current->trapframe->regs.sp + 32;
+    uint64 fun_sp;
+    // fun_sp= current->trapframe->regs.sp+56 ;
+    // int res = elf_get_funname( *(uint64 *) fun_sp );
+    // sprint("%d\n",res);
+    fun_sp = current->trapframe->regs.sp + 32;
     uint64 fun_pa = fun_sp + 8;
     i = 0;
     while ( i < depth ) {

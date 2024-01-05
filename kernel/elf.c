@@ -222,7 +222,7 @@ int elf_get_funname( uint64 ret_addr ) {
             return 1;
         }
     }
-    return 1;
+    return 2;
 }
 
 long backtrace( int depth ) {
