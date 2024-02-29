@@ -159,7 +159,7 @@ void user_better_free( uint64 va ) {
     } else {
         pre->next = cur->next;
     }
-    // 将块插入到空闲链表
+    // 将块插入到空闲链表,可以使用头节点置空操作简化逻辑
     BLOCK *free_cur = current->free_start, *free_pre = current->used_start;
     while ( free_cur ) {
         if ( free_cur->va > cur->va ) {
