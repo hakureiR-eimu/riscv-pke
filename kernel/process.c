@@ -154,40 +154,34 @@ void user_better_free( uint64 va ) {
     if ( cur == NULL ) {
         panic( "fail to find specific block.\n" );
     }
-    // free,update used line
     if ( cur == current->used_start ) {
         current->used_start = cur->next;
     } else {
         pre->next = cur->next;
     }
-    // update free line
-    // find the corrent position to insert
+    // 将块插入到空闲链表
     BLOCK *free_cur = current->free_start, *free_pre = current->used_start;
     while ( free_cur ) {
-        if ( free_cur->va > cur->va )
-{
-    break;
-}
+        if ( free_cur->va > cur->va ) {
+            break;
+        }
         free_pre = free_cur;
         free_cur = free_cur->next;
     }
-    // insert this block into the last
     if ( free_cur == NULL ) {
         if ( free_pre == NULL ) {
             cur->next = current->free_start;
             current->free_start = cur;
         } else {
-            // merge too blocks
             if ( free_pre->va + free_pre->size >= cur->va ) {
                 free_pre->size += cur->size;
             } else
-                free_pre->next = cur, cur->next = NULL; // don't merge
+                free_pre->next = cur, cur->next = NULL;
         }
     } else {
-        // insert the block into the first
         if ( free_cur == current->free_start ) {
             if ( cur->va + cur->size >=
-                 free_cur->va ) // merge this and the next
+                 free_cur->va ) 
             {
                 cur->size += free_cur->size;
                 cur->next = free_cur->next;
@@ -196,29 +190,28 @@ void user_better_free( uint64 va ) {
                 cur->next = current->free_start;
                 current->free_start = cur;
             }
-        } else { // insert the block into the middle
+        } else { 
             if ( free_pre->va + free_pre->size >= cur->va &&
-                 cur->va + cur->size >= free_cur->va ) // merge three blocks
+                 cur->va + cur->size >= free_cur->va )
             {
                 free_pre->size += cur->size + free_cur->size;
                 free_pre->next = free_cur->next;
             } else if ( cur->va + cur->size >=
-                        free_cur->va ) // merge this and the next
+                        free_cur->va )
             {
                 cur->size += free_cur->size;
                 cur->next = free_cur->next;
                 free_pre->next = cur;
             } else if ( free_pre->va + free_pre->size >=
-                        cur->va ) // merge this and pre
+                        cur->va )
             {
                 free_pre->size += cur->size;
-            } else // don't merge
+            } else 
             {
                 free_pre->next = cur;
                 cur->next = free_cur;
             }
         }
     }
-    // cur->next=current->free_start;
-    // current->free_start=cur;
+
 }
